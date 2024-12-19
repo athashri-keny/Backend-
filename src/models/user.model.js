@@ -47,7 +47,7 @@ refreshToken: {
 }
 },
  {
-    timestamps: true,
+    timestamps: true
 }
 )
 
@@ -65,7 +65,7 @@ userschema.methods.isPasswordCorrect = async function(password) {
      return await bcrypt.compare(password , this.password)
 }
 // Method to generate an access token (JWT) for the user UNIQUE
-userschema.methods.generateAcessToken = function() {
+userschema.methods.generateAccessToken = function() { // accesstoken
      return jwt.sign(
         {
         _id: this._id,
@@ -80,7 +80,7 @@ userschema.methods.generateAcessToken = function() {
 )
 }
 // Method to generate an refresh token (JWT) for the user
-userschema.methods.generateRefreshToken = function() {
+userschema.methods.generateRefreshToken = function() { // refresh token 
     return jwt.sign(
         {
             

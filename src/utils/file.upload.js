@@ -18,8 +18,6 @@ const uploadoncloud = async(localFilePath) => {
         })
         // file has been uploaded suceessfully and then unlink the file 
         fs.unlinkSync(localFilePath)
-        fs.existsSync(localFilePath)
-
         return respone
         
     } catch (error) {
