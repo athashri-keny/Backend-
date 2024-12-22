@@ -1,34 +1,35 @@
-import { ApiError } from "../utils/ApiError.js";
-import { asyncHandler } from "../utils/async.handler.js";
-import jwt from "jsonwebtoken"
-import { user } from "../models/user.model.js";
-
 
 // verify if is user is there or not 
+import jwt from 'jsonwebtoken';
+import { asyncHandler } from '../utils/async.handler.js';
+import { ApiError } from '../utils/ApiError.js';
+import { user } from '../models/user.model.js';
 
-export const verifyjwt = asyncHandler(async(req , res , next) => {
-  
-  try {
-    const token =  req.cookies?.accessToken || req.header("Authorization")?.replace("Bearer" , "").trim(); // retrieve a token from either cookies or headers 
-  
-    if (!token) {
-      throw new ApiError(401 , "unauthorized request")
+export const verifyjwt = asyncHandler(async (req, res, next) => {
+    try {
+        // Retrieve token from cookies or Authorization header
+        const token =
+            req.cookies?.accessToken ||
+            req.header('Authorization')?.replace('Bearer ', '').trim();
+
+        if (!token) {
+            throw new ApiError(401, 'Unauthorized request: No token provided');
+        }
+        // Verify the token
+        const decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+
+        // Find the user in the database
+        const foundUser = await user.findById(decodedToken?._id).select('-password -refreshToken');
+
+        if (!foundUser) {
+            throw new ApiError(404, 'User not found');
+        }
+
+        // Attach the user object to the request
+        req.user = foundUser;
+        next();
+    } catch (error) {
+        // Pass the error to the Express error handler
+        next(new ApiError(401, error?.message || 'Invalid access token'));
     }
-  // if token is there => 
-      const decodedtoken = jwt.verify(token , process.env.ACCESS_TOKEN_SECRET) // verify that the token is correct
-  
-  // find the user in database 
-     const User = await user.findById(decodedtoken?._id).select("-password -refreshToken" ) // returns an object
-  
-     if(!User) {
-      throw new ApiError(404 , "user not found ")
-     }
-
-   // assgin the User in req.user for use 
-     req.User = User
-    next()
-
-  } catch (error) {
-    throw new ApiError(401 , error?.message || "invaild access token" )
-  }
-})
+});

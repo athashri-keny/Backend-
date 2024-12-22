@@ -72,6 +72,7 @@ if (!avatarLocalPath) {
         username: username.toLowerCase() // Stores the avatar and cover image URLs from the cloud
     })
 console.log(req.files)
+
 // Fetching the Created User
 const createdUser =  await user.findById(User._id).select( // double checks the operation 
     "-password -refreshToken"
@@ -268,15 +269,12 @@ const avataRLocalPath = req.file?.path // extracting the file path from req.file
 if(!avataRLocalPath) {
     throw new ApiError(400 , "avatar file is required")
 }
-
 // Fetch the user to get the old avatar URL
 const CurrentUser = await user.findById(req.user._id)
 if(!CurrentUser) {
     throw new  ApiError(404 , "user not found")
 }
-
 const oldavatarUrl = CurrentUser.avatar
-
  // uploads the file to the cloud, and returns an object with the uploaded file's details.
  const avatar = await uploadoncloud(avataRLocalPath)
  if (!avatar.url) {
@@ -290,6 +288,7 @@ const oldavatarUrl = CurrentUser.avatar
     } catch (error) {
         console.log(error , "cloudnt delete old user url")
     }
+
  }
  // Find the user by ID and update their avatar
   const User = await user.findByIdAndUpdate(
@@ -477,8 +476,6 @@ const GetWatchHistory = asyncHandler(async(req , res) => {
     )
 )
 })
-
-
 
 export { 
     registerUser,

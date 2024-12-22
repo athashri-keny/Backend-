@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { loginUser, logoutUser, registerUser , refreshTokenAccessToken, changerCurrentUserPassword, getcurrentUser, GetWatchHistory } from "../controllers/user.controllers.js";  // export higger order function from user controllers
+import { loginUser, logoutUser, registerUser , refreshTokenAccessToken, changerCurrentUserPassword, getcurrentUser , updateUserAvatar, updateUserCoverImg , getUserChannelProfile , GetWatchHistory} from "../controllers/user.controllers.js";  // export higger order function from user controllers
 import { upload } from "../middlewares/multer.js"; // for storaging files eg pdf , photos , avatar imgs
 import { verifyjwt } from "../middlewares/auth.middleware.js";
 
@@ -34,10 +34,11 @@ router.route("/register").post(
 
    router.route("/avatar").patch(verifyjwt , upload.single("avatar") , updateUserAvatar)
 
-   router.route("/cover-image").patch(single("/cover-Image") , updateUserCoverImg)
+router.route("/cover-image").patch(verifyjwt , upload.single("coverImage" , updateUserCoverImg))
 
    router.route("/c/:username").get(verifyjwt , getUserChannelProfile)
 
    router.route("/history").get(verifyjwt , GetWatchHistory)
+
 
 export default router;

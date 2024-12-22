@@ -51,6 +51,8 @@ refreshToken: {
 }
 )
 
+             // HOOKS
+ 
 // this line  is a middleware to brcpt the password before saving from user 
 userschema.pre("save" , async function (next) {
     if(!this.isModified("password")) return next();
