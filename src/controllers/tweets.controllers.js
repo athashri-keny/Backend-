@@ -2,7 +2,7 @@ import { asyncHandler } from "../utils/async.handler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/api.response.js";
 import { Tweets } from "../models/tweets.model.js";
-
+import mongoose from "mongoose";
 
 // getting tweet contain from req.body
 // finding the User in database
@@ -63,23 +63,30 @@ const GetCurrentUserTweets = asyncHandler(async(req , res) => {
     
 })
 
+// updating the current User tweets
 const updatetweet = asyncHandler(async (req, res) => {
     const { Newtweet } = req.body; // Extracting new tweet content from the request body
     if (!Newtweet) {
-        throw new ApiError(404, "Tweet content required");
+        throw new ApiError(400, "Tweet content required");
     }
 
-    // Get the authenticated user's ID
+    // Get the user's ID for req.user._id
     const UserId = req.user._id;
     if (!UserId) {
-        throw new ApiError(404, "User not found!");
+        throw new ApiError(401, "User not found!");
     }
 
-    const tweetid = req.params.tweetId;
+    // finding the tweet id in database
+    const tweetid = req.params.tweetId
+     console.log("Tweet ID received:", req.params.tweetId);
 
+    // Validate tweetId
+    if (!mongoose.Types.ObjectId.isValid(tweetid)) {
+        throw new ApiError(400, "Invalid Tweet ID.");
+    }
+    
     // Finding the tweet and ensuring the user owns it
     const tweet = await Tweets.findOne({ _id: tweetid, owner: UserId });
-    
     if (!tweet) {
         throw new ApiError(404, "Tweet not found or you do not have permission to edit this tweet.");
     }
@@ -94,8 +101,33 @@ const updatetweet = asyncHandler(async (req, res) => {
 });
 
 
+const deleteTweet = asyncHandler(async(req , res) => {
+
+    const UserId = req.user._id
+    if (!UserId) {
+       throw new ApiError(401 , "user not found")
+    }
+    const tweetid = req.params.tweetId
+    console.log("tweet Id received" , req.params.tweetId)
+
+    if(!mongoose.Types.ObjectId.isValid(tweetid)) {
+        throw new ApiError(400 , "invaild tweet id provided")
+    }
+
+    const tweet = await Tweets.findByIdAndDelete({_id: tweetid , owner: UserId})
+
+    if (!tweet) {
+        console.log("you dont have permission to delete this tweet")
+    }
+
+    return res
+    .status(200)
+    .json(new ApiResponse(200 , "tweet deleted successfully"))
+})
+
 export {
    tweetCreate,
    GetCurrentUserTweets,
-   updatetweet
+   updatetweet,
+   deleteTweet
 }

@@ -5,6 +5,7 @@ import { uploadoncloud } from "../utils/file.upload.js";
 import { ApiResponse } from "../utils/api.response.js";
 import jwt from "jsonwebtoken"
 import mongoose from "mongoose";
+import { v2 as cloudinary } from 'cloudinary';
 
 // access and refresh token generator 
 const generateaccessandRefreshtokens = async(UserId) => { 
@@ -142,10 +143,10 @@ if (!username && !email) {
 //  to login out user
 const logoutUser = asyncHandler(async(req ,res ) => {
   await user.findByIdAndUpdate(
-        req.User._id,
+        req.user._id,
         {
             $set: {
-                refreshToken: undefined
+                refreshToken: 1
             }
         }, {
             new: true
@@ -164,9 +165,8 @@ const logoutUser = asyncHandler(async(req ,res ) => {
 })
 
 // genrating new accesstoken if the user's accesstoken expiryed 
-
 const refreshTokenAccessToken = asyncHandler(async( req , res) => {
-  
+    
  const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken //Extracting the refreshToken from the User
  if (!incomingRefreshToken) {
     throw new ApiError(401 , "unauthorized request")
@@ -213,13 +213,12 @@ const changerCurrentUserPassword = asyncHandler(async(req, res) => {
     const {oldPassword , newPassword} = req.body // extracting the user oldpassword and new password
 
 // finding the user in database 
-  const User =  await user.findById(req.User?._id)
+  const User =  await user.findById(req.user?._id)
     const isPasswordCorrect = await User.isPasswordCorrect(oldPassword) // checking the password correct that user has inentered(oldpassword)
 
     if(!isPasswordCorrect) {
         throw new ApiError (400 , "Invaild old password")
     }
-
  // saving the new password 
     User.password = newPassword // saving the password in User 
      await User.save({validateBeforeSave: false})
@@ -228,12 +227,19 @@ const changerCurrentUserPassword = asyncHandler(async(req, res) => {
      .json(new ApiResponse(200, {} , "password change sucessfully"))
 })
 
+
 // to get Current User Information 
 const getcurrentUser = asyncHandler(async(req , res ) => {
-    return res
-    .status(200)
-    .json(200 , req.User , "Current user fetched sucessfully")
-})
+     const currentUser = req.user._id
+     if (!currentUser) {
+        throw new ApiError(404 , "user not found")
+     }
+     return res
+     .status(200)
+     .json(new ApiResponse(200, req.user, "User fetched successfully"));
+ });
+
+
 
 // Update accounts details eg fullname , email 
 const updateAccountDetails = asyncHandler(async(req , res) => {
@@ -243,9 +249,8 @@ const updateAccountDetails = asyncHandler(async(req , res) => {
         throw new ApiError(400 , "All fields are requried")
 
     }
-
       const User =  await user.findByIdAndUpdate(
-        req.User?._id, 
+        req.user?._id, 
         {
             $set: {
                 fullname: fullname,
@@ -269,11 +274,13 @@ const avataRLocalPath = req.file?.path // extracting the file path from req.file
 if(!avataRLocalPath) {
     throw new ApiError(400 , "avatar file is required")
 }
+
 // Fetch the user to get the old avatar URL
 const CurrentUser = await user.findById(req.user._id)
 if(!CurrentUser) {
     throw new  ApiError(404 , "user not found")
 }
+
 const oldavatarUrl = CurrentUser.avatar
  // uploads the file to the cloud, and returns an object with the uploaded file's details.
  const avatar = await uploadoncloud(avataRLocalPath)
@@ -311,30 +318,40 @@ return res
     new ApiResponse(200 , User , "avatar updated sucessfully")
 ) })
 
+
 // updating the user cover img (same process as the avatar one)
 const updateUserCoverImg = asyncHandler(async(req , res) => {
 
-    const updateUserCoverImg = req.file?.path
+    const oldupdateUserCoverImg = req.file?.path
     
-    if(!updateUserCoverImg) {
+    if(!oldupdateUserCoverImg) {
         throw new ApiError(400 , "cover file is required")
     }
-     const coverImage  = await uploadoncloud(updateUserCoverImg)
-
-     if (!coverImage.url) {
+     const newcoverImage  = await uploadoncloud(oldupdateUserCoverImg)
+     if (!newcoverImage.url) {
         throw new ApiError(400 , "error while uploading on cover")
      }
+    
+     if (oldupdateUserCoverImg) {
+        try {
+            const publicId = oldupdateUserCoverImg.split("/").pop().split(".")[0]; // Extracts the file name without extension
+            await cloudinary.uploader.destroy(publicId); // Deletes the file from Cloudinary
+        } catch (error) {
+            console.log(error , "error while deleting the old cover image file")
+        }
+     }
+
       const User = await user.findByIdAndUpdate(
         req.user?._id,
     
         {
             $set: {
-                coverImage: coverImage.url
+                coverImage: newcoverImage.url
             }
         },
         {new: true}
-     ).select("-passsowrd")
- 
+     ).select("-password")
+     
 
     return res
     .status(200)

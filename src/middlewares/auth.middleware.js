@@ -1,4 +1,4 @@
-
+// The auth midddleware is used for validating the if the User is validated or not 
 // verify if is user is there or not 
 import jwt from 'jsonwebtoken';
 import { asyncHandler } from '../utils/async.handler.js';
