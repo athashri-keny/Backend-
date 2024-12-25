@@ -72,7 +72,7 @@ if (!avatarLocalPath) {
         password,
         username: username.toLowerCase() // Stores the avatar and cover image URLs from the cloud
     })
-console.log(req.files)
+
 
 // Fetching the Created User
 const createdUser =  await user.findById(User._id).select( // double checks the operation 
@@ -343,7 +343,6 @@ const updateUserCoverImg = asyncHandler(async(req , res) => {
 
       const User = await user.findByIdAndUpdate(
         req.user?._id,
-    
         {
             $set: {
                 coverImage: newcoverImage.url
@@ -441,7 +440,7 @@ const GetWatchHistory = asyncHandler(async(req , res) => {
     const User = await user.aggregate([
         {
             $match: {
-                _id: new mongoose.Types.ObjectId(req.User._id)
+                _id: new mongoose.Types.ObjectId(req.user._id)
             }
         },
         // going from User to watchHistory in Videos model
