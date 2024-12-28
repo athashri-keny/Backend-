@@ -40,7 +40,6 @@ const tweetCreate = asyncHandler(async (req, res) => {
 const GetCurrentUserTweets = asyncHandler(async(req , res) => {
 
     const userid = req.user._id; // getting the user from the middleware
-    console.log("user found successsfully")
      if (!userid) {
         throw new ApiError(404 , "user not found")
      }

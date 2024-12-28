@@ -24,7 +24,7 @@ export const verifyjwt = asyncHandler(async (req, res, next) => {
         if (!foundUser) {
             throw new ApiError(404, 'User not found');
         }
-
+       
         // Attach the user object to the request
         req.user = foundUser;
         next();

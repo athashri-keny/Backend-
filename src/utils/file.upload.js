@@ -10,7 +10,7 @@ import fs from "fs"
 const uploadoncloud = async(localFilePath) => {
     try {
         if(!localFilePath) {
-            console.log("file path not found!")
+            console.log("file path not found!") 
         }
         //upload the file on cloudinary
        const respone = await  cloudinary.uploader.upload(localFilePath, {
