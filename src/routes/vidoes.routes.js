@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { publishVideo , getallVidoes } from "../controllers/videos.controlles.js";
+import { publishVideo , getallVidoes , GetvideoByID , UpdateVideodetails, DeleteVideo , TogglePublishStatus } from "../controllers/videos.controlles.js";
 import { upload } from "../middlewares/multer.js";
 import { verifyjwt } from "../middlewares/auth.middleware.js";
 
@@ -16,5 +16,11 @@ router.route("/upload").post( verifyjwt,
     ]),
     publishVideo // After the upload middleware, call the publishVideo function
 );
+
+
+router.route("/c/:VideoId").get(GetvideoByID);
+router.route("/update/c/:VideoId").patch(UpdateVideodetails);
+router.route("/delete/c/:VideoId").delete(DeleteVideo);
+router.route("/Publishstatus/c/:VideoId").get(TogglePublishStatus)
 
 export default router;

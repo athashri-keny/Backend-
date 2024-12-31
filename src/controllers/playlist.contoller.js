@@ -13,8 +13,9 @@ const CreatePlaylist = asyncHandler(async(req , res) => {
        if(!name || !description) {
         throw new ApiError (404 , "name and description of the playlist is required")
        }
-
-       const User = await user.findById(req.body._id)
+      const UserId = req.user._id
+      
+       const User = await user.findById(UserId)
     if(!User) {
         throw new ApiError(404 , "User not found")
     }
@@ -23,7 +24,7 @@ const CreatePlaylist = asyncHandler(async(req , res) => {
         name,
         description,
         owner: User,
-        vidoes
+       
     })
 
     return res
@@ -36,31 +37,31 @@ const CreatePlaylist = asyncHandler(async(req , res) => {
     })
 }
 )
+const getUserplaylists = asyncHandler(async (req, res) => {
+    const { userID } = req.params;
 
-const getUserplaylists = asyncHandler(async(req , res) => {
-      // to get User id from Url use req.params
-      // finding the user 
-    const {userID} = req.params
-    if(!userID) {
-        throw new ApiError(404 , "User id not found")
+    if (!userID) {
+        throw new ApiError(404, "User ID is required!");
     }
 
-     // finding the playlist
-      const UserPlaylist = await Playlist.find({owner: userID})
+    const User = await user.findById(userID);
+    if (!User) {
+        throw new ApiError(404, "User is invalid");
+    }
 
-      if(!UserPlaylist) {
-        throw new ApiError(404 , "User has Playlist not found!")
-      }
+    const UserPlaylist = await Playlist.find({ owner: User });
 
-  return res
-  .status(200)
-  .json({
-    status: 200,
-    data: UserPlaylist,
-    message: "User playlist fetched Sucessfully"
-  })
-}
-)
+    if (!UserPlaylist || UserPlaylist.length === 0) {
+        throw new ApiError(404, "User has no playlists!");
+    }
+
+    return res.status(200).json({
+        status: 200,
+        data: UserPlaylist,
+        message: "User playlists fetched successfully"
+    });
+});
+
 
 // getting the playlist id of the created User 
 const GetPlaylistID = asyncHandler(async(req , res ) => {
@@ -86,46 +87,46 @@ const GetPlaylistID = asyncHandler(async(req , res ) => {
 })
 
 
-const addvidoeToPlaylist = asyncHandler(async(req , res) => {
-    const {PlaylistId , videoID} = req.params
-    if (!PlaylistId || !videoID) {
-      throw new ApiError(404 , "PLaylist and videoID required!!")        
-    }
-      
-    const playlist = await Playlist.findById(PlaylistId)
-    const Videos = await Video.findById(videoID)
-
-    if (!playlist || !Videos) {
-        throw new ApiError(404 , "Playlist and video id not found")
-    }
-    
-    await Playlist.findByIdAndUpdate(
-        PlaylistId, // This is the ID of the playlist you want to update.
-        {$addtoSet: {Videos: videoID}}, //  The $addToSet operator is used to add a value to an array
-        {new : true} // returns the value 
-    )
-
-    try {
-        await Playlist.save()
-    } catch (error) {
-        console.log(error , "error while saving the playlist")
-    }
-
-    return res
-    .status(200) // Correct status code for success
-    .json(
-        new ApiResponse(200, {
-            playlist, // Include the playlist in the response
-            message: "Videos added to playlist successfully" // Add a descriptive message
-        })
-    );
-
+const addvidoeToPlaylist = asyncHandler(async (req, res) => {
     // take playlist and videoid from user
     // finding the playlistid and videoid in database (if it is there or not)
     // adding the videosid in the playlistid 
     // saving the vidoes in the playlist 
     // returing the response to the user
-})
+    const { PlaylistId, videoID } = req.params;
+    if (!PlaylistId || !videoID) {
+        throw new ApiError(404, "Playlist and videoID required!");
+    }
+
+    const playlist = await Playlist.findById(PlaylistId);
+    const video = await Video.findById(videoID);
+
+    if (!playlist || !video) {
+        throw new ApiError(404, "Playlist or video ID not found");
+    }
+
+    // Make sure to use 'vidoes' instead of 'Videos'
+    const updatedPlaylist = await Playlist.findByIdAndUpdate(
+        PlaylistId,
+        { $addToSet: { vidoes: videoID } },  // Use 'vidoes' here
+        { new: true }
+    );
+
+    // Check if the playlist was updated
+    if (!updatedPlaylist) {
+        throw new ApiError(500, "Error while updating playlist");
+    }
+
+    return res.status(200).json(
+        new ApiResponse(200, {
+            playlist: updatedPlaylist,
+            message: "Video added to playlist successfully"
+        })
+    );
+});
+
+
+
 
 const removevideofromplaylist = asyncHandler(async(req , res) => {
     // check if the playlist and video id are vaild
@@ -157,7 +158,7 @@ const removevideofromplaylist = asyncHandler(async(req , res) => {
      // removing the video from playlist
     const playlistt = await Playlist.findByIdAndUpdate(
         PlaylistId,
-        { $pull: { Videos: videoID } }, // Removes the videoId from the videos array
+        { $pull: { vidoes: videoID } }, // Removes the videoId from the videos array
         { new: true } // Returns the updated document
     );
 
@@ -189,11 +190,15 @@ const updatePlaylist = asyncHandler(async(req , res)=> {
      throw new ApiError(404 , "playlist is incorrect")
    }
 
-  const UpdatedPlaylist =  await Playlist.findByIdAndUpdate(
+   const UpdatedPlaylist = await Playlist.findByIdAndUpdate(
     PlaylistId,
-    {$push: {videos: videoID}},
-    {new: true}
-   )
+    {
+        $push: { vidoes: videoID }, // Push the videoID into the videos array
+        name: name, // Update the name of the playlist
+        description: description // Update the description of the playlist
+    },
+    { new: true } // Return the updated playlist
+);
 
    return res
    .status(200)

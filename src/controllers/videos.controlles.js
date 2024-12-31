@@ -55,8 +55,11 @@ const getallVidoes = asyncHandler(async (req, res) => {
   });
 });
 
+
+
 import path from 'path';
 
+// publishing the video
 const publishVideo = asyncHandler(async (req, res) => {
   const { title, description } = req.body;
   const thumbnail = req.files.thumbnail[0]; // extracts the first element of the array
@@ -107,9 +110,128 @@ const publishVideo = asyncHandler(async (req, res) => {
   );
 });
 
+const GetvideoByID = asyncHandler(async(req , res) => {
+  
+  // taking the video id from the user 
+  // finding the video id in database
+  // returing the response to the User(frontend)
+  const VideoId = req.params.VideoId
+  if (!VideoId) {
+    throw new ApiError(400 , "Video is required!-")
+  }
 
+  const FoundVideoID = await Video.findById(VideoId)
+  if (!FoundVideoID) {
+    throw new ApiError(500 , "Video ID is incorrect ")
+  }
+
+  return res
+  .status(201)
+  .json(
+    new ApiResponse(201 , FoundVideoID , "video fetched Sucessfully!")
+  )
+
+})
+
+const UpdateVideodetails = asyncHandler(async(req , res) => {
+  // taking the video id from the user
+  // finding the video in the base of videos 
+  // taking new Information for eg title , description and thumbnail
+  // saving the new information as NEWINFO in database
+  // returing the response to the USER
+  const VideoId = req.params.VideoId
+  if (!VideoId) {
+    throw new ApiError(404 , "Video Id required!")
+  }
+
+  const { title, description } = req.body;
+  if (!title || !description) {
+    throw new ApiError(401, "Title and description are required");
+  }
+  
+  const FoundVideoID = await Video.findById(VideoId)
+  if(!FoundVideoID) {
+    throw new ApiError(400 , "Invaild Video Id")
+  }
+  
+  const updatedVideo = await Video.findByIdAndUpdate(
+    VideoId,  // Use the video ID to find the document
+    { title, description },
+    // Update the title and description
+    { new: true }  // Return the updated document
+  );
+  if (!updatedVideo) {
+    throw new ApiError(400, "Something went wrong while updating the video");
+  }
+  return res
+  .status(201)
+  .json({
+    message: "Video title and description updated successfully",
+    data: updatedVideo
+  });
+
+})
+
+const DeleteVideo = asyncHandler(async(req , res) => {
+  // take video id from the user
+  // find the video in database 
+  // delete the video in database by findbyIdandDelete (this method requried a object!)
+  // return response to the user
+  const { VideoId } = req.params;
+  
+  // Check if VideoId is provided
+  if (!VideoId) {
+    throw new ApiError(400, "Video ID is required!");
+  }
+
+  // Find the video in the database and delete
+  const FindVideo = await Video.findByIdAndDelete(VideoId);
+
+  // Handle the case where the video is not found
+  if (!FindVideo) {
+    throw new ApiError(404, "Video not found or already deleted!");
+  }
+
+  // Return success response to the user
+  return res.status(200).json(
+    new ApiResponse("Video deleted successfully!")
+  );
+});
+
+
+const TogglePublishStatus = asyncHandler(async(req , res) => {
+  const {VideoId} = req.params
+  if (!VideoId) {
+    throw new ApiError(404 , "Video Id is requried!")
+  }
+
+  const FoundVideoId = await Video.findById(VideoId)
+  if (!FoundVideoId) {
+    throw new ApiError(400 , "Enter a vaild Video ID")
+  }
+
+  if (FoundVideoId.isPublished) {
+    FoundVideoId.isPublished = true;
+  }
+  else{
+    FoundVideoId.isPublished = false
+  }
+
+  await FoundVideoId.save()
+
+   return res
+  .status(201)
+  .json(
+    new ApiResponse(201 ,  "video is Published Sucessfully!")
+  )
+
+})
 
 export {
     getallVidoes,
     publishVideo,
+    GetvideoByID,
+    UpdateVideodetails,
+    DeleteVideo,
+    TogglePublishStatus
 }
