@@ -377,7 +377,7 @@ const getUserChannelProfile = asyncHandler(async(req , res) => {
         {
             $lookup: {
                 from: "subscriptions",
-                localField: "_id,",
+                localField: "_id",
                 foreignField: "channel",
                 as: "subcribers"
             }
@@ -385,7 +385,7 @@ const getUserChannelProfile = asyncHandler(async(req , res) => {
         }, {
             $lookup: {
                 from: "subscriptions",
-                localField: "_id,",
+                localField: "_id",
                 foreignField: "subcriber",
                 as: "subcribedto"
             }
@@ -446,6 +446,7 @@ const GetWatchHistory = asyncHandler(async(req , res) => {
         // going from User to watchHistory in Videos model
         {
             $lookup: {
+                
                 from: "videos",
                 localField: "watchHistory",
                 foreignField: "_id",
@@ -482,6 +483,7 @@ const GetWatchHistory = asyncHandler(async(req , res) => {
             }
         }
     ])
+    
     return res
 .status(200)
 .json(
