@@ -24,6 +24,7 @@ import VideosRouter from "./routes/vidoes.routes.js"
 import CommentsRouter from "./routes/comments.routes.js"
 import LikesRouter from "./routes/likes.routes.js"
 import SubRouter from "./routes/subcription.routes.js"
+import DashRouter from "./routes/dashboard.routes.js"
 // Routes
 // it is compursary to use an middleware because the routes is in other folder futher this is send to user routes 
 app.use("/api/v1/users", userRouter); 
@@ -34,6 +35,7 @@ app.use("/api/v1/videos" , VideosRouter)
 app.use("/api/v1/comments" , CommentsRouter)
 app.use("/api/v1/likes" , LikesRouter)
 app.use("/api/v1/subs" , SubRouter)
+app.use("/api/v1/dash" , DashRouter)
 
 // http://localhost:3000/api/v1/users/register
 

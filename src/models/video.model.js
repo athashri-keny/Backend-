@@ -26,11 +26,16 @@ const videoSchema = new Schema(
     views: {
       type: Number,
       default: 0,
-    },
+    }, 
+    likes : {
+      type : Number,
+      default : 0,
+  },
     isPublished: {
       type: Boolean,
       default: true, // Ensure the spelling is "isPublished" (you had "isPulished")
     },
+
     owner: {
       type: Schema.Types.ObjectId,
       ref: "User", // Reference to the User model

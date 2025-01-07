@@ -3,7 +3,7 @@ import {ApiError} from "../utils/ApiError.js"
 import { ApiResponse } from "../utils/api.response.js"
  import { asyncHandler } from "../utils/async.handler.js"
 import {Subscription} from "../models/subscription.model.js"
-import {mongoose} from "mongoose"
+import mongoose from "mongoose"
 // checks if the user has sub to the channel or not if not subs to the channel
 
 const ToggleSubcription = asyncHandler(async(req , res) => {
@@ -111,7 +111,7 @@ const getSubscribedChannels = asyncHandler(async(req , res) => {
 
     {
       $match: {
-        subcriber: subcriberId // Match subscription documents where the subscriber is the provided user
+        subcriber:  new mongoose.Types.ObjectId(subcriberId) // Match subscription documents where the subscriber is the provided user
       }
     },
     {
@@ -122,12 +122,7 @@ const getSubscribedChannels = asyncHandler(async(req , res) => {
         as: "ChannelDetails"
       }
     },
-    {
-      $facet: {
-        subscriptions: [
-        ],
-      }
-    },
+    
     {
       $project: {
         subcriber: 1,
